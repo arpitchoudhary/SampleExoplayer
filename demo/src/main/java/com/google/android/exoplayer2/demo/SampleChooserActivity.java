@@ -27,6 +27,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.TextView;
@@ -60,6 +61,14 @@ public class SampleChooserActivity extends Activity {
     Intent intent = getIntent();
     String dataUri = intent.getDataString();
     String[] uris;
+
+//    findViewById(R.id.Btn).setOnClickListener(new View.OnClickListener() {
+//      @Override
+//      public void onClick(View v) {
+//        startActivity(new Intent(SampleChooserActivity.this,PlayerActivity.class).setData(Uri.parse("http://www.youtube.com/api/manifest/dash/id/bf5bb2419360daf1/source/youtube?as=fmp4_audio_clear,fmp4_sd_hd_clear&sparams=ip,ipbits,expire,source,id,as&ip=0.0.0.0&ipbits=0&expire=19000000000&signature=51AF5F39AB0CEC3E5497CD9C900EBFEAECCCB5C7.8506521BFC350652163895D4C26DEE124209AA9E&key=ik0")));
+//      }
+//    });
+
     if (dataUri != null) {
       uris = new String[] {dataUri};
     } else {
@@ -167,8 +176,6 @@ public class SampleChooserActivity extends Activity {
       String extension = null;
       UUID drmUuid = null;
       String drmLicenseUrl = null;
-      String[] drmKeyRequestProperties = null;
-      boolean preferExtensionDecoders = false;
       ArrayList<UriSample> playlistSamples = null;
 
       reader.beginObject();
@@ -193,23 +200,6 @@ public class SampleChooserActivity extends Activity {
                 "Invalid attribute on nested item: drm_license_url");
             drmLicenseUrl = reader.nextString();
             break;
-          case "drm_key_request_properties":
-            Assertions.checkState(!insidePlaylist,
-                "Invalid attribute on nested item: drm_key_request_properties");
-            ArrayList<String> drmKeyRequestPropertiesList = new ArrayList<>();
-            reader.beginObject();
-            while (reader.hasNext()) {
-              drmKeyRequestPropertiesList.add(reader.nextName());
-              drmKeyRequestPropertiesList.add(reader.nextString());
-            }
-            reader.endObject();
-            drmKeyRequestProperties = drmKeyRequestPropertiesList.toArray(new String[0]);
-            break;
-          case "prefer_extension_decoders":
-            Assertions.checkState(!insidePlaylist,
-                "Invalid attribute on nested item: prefer_extension_decoders");
-            preferExtensionDecoders = reader.nextBoolean();
-            break;
           case "playlist":
             Assertions.checkState(!insidePlaylist, "Invalid nesting of playlists");
             playlistSamples = new ArrayList<>();
@@ -228,11 +218,11 @@ public class SampleChooserActivity extends Activity {
       if (playlistSamples != null) {
         UriSample[] playlistSamplesArray = playlistSamples.toArray(
             new UriSample[playlistSamples.size()]);
-        return new PlaylistSample(sampleName, drmUuid, drmLicenseUrl, drmKeyRequestProperties,
-            preferExtensionDecoders, playlistSamplesArray);
+        return new PlaylistSample(sampleName, drmUuid, drmLicenseUrl, null,
+            false, playlistSamplesArray);
       } else {
-        return new UriSample(sampleName, drmUuid, drmLicenseUrl, drmKeyRequestProperties,
-            preferExtensionDecoders, uri, extension);
+        return new UriSample(sampleName, drmUuid, drmLicenseUrl, null,
+            false, uri, extension);
       }
     }
 
@@ -371,12 +361,6 @@ public class SampleChooserActivity extends Activity {
 
     public Intent buildIntent(Context context) {
       Intent intent = new Intent(context, PlayerActivity.class);
-      intent.putExtra(PlayerActivity.PREFER_EXTENSION_DECODERS, preferExtensionDecoders);
-      if (drmSchemeUuid != null) {
-        intent.putExtra(PlayerActivity.DRM_SCHEME_UUID_EXTRA, drmSchemeUuid.toString());
-        intent.putExtra(PlayerActivity.DRM_LICENSE_URL, drmLicenseUrl);
-        intent.putExtra(PlayerActivity.DRM_KEY_REQUEST_PROPERTIES, drmKeyRequestProperties);
-      }
       return intent;
     }
 

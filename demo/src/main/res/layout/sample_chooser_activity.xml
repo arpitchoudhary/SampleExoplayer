@@ -18,6 +18,13 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+  <Button
+      android:id="@+id/Btn"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="play"
+      android:visibility="gone"/>
+
   <ExpandableListView android:id="@+id/sample_list"
       android:layout_width="match_parent"
       android:layout_height="match_parent"/>
